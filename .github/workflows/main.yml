@@ -1,0 +1,40 @@
+on:
+  push:
+    branches:
+    - main
+jobs:
+  my_job:
+    name: deploy to staging
+    runs-on: ubuntu-22.04
+ efaults:
+  run:
+    working-directory: ${{ env.tf_actions_working_dir }}
+permissions:
+  pull-requests: write
+steps:
+- uses: actions/checkout@v4
+- uses: hashicorp/setup-terraform@v4
+
+- name: Terraform fmt
+  id: fmt
+  run: terraform fmt -check
+  continue-on-error: true
+
+- name: Terraform Init
+  id: init
+  run: terraform init -input=false
+
+- name: Terraform Validate
+  id: validate
+  run: terraform validate -no-color
+
+- name: Terraform Plan
+  id: plan
+  run: terraform plan -no-color -input=false -out=tfplan
+  continue-on-error: true
+
+- name: Terraform apply
+  id: plan
+  run: terraform apply -auto-approve tfplan
+  continue-on-error: true
+
